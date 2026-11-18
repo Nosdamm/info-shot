@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="tr" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InfoShot v1.0 - Shot Recipe & Continuity Desk</title>
+  <script src="/tailwindcss.min.js"></script>
+  <style>
+    /* ======================================================== */
+    /* ======================================================== */
+    /* MASTER THEME SYSTEM: NORDIC SAGE & WARM TERRACOTTA       */
+    /* ======================================================== */
+
+    :root, html, html.theme-dark {
+      --bg-canvas: #151a17;          /* Koyu adaçayı / orman grafit */
+      --bg-panel: #1e2420;           /* Koyu zeytin panel */
+      --bg-surface: #262d28;         /* Orta adaçayı kart yüzeyi */
+      --bg-contrast: #2f3832;        /* Yükseltilmiş kart */
+      --bg-contrast-text: #f0f4ed;
+      --bg-input: #1a201c;
+      --border-subtle: rgba(184, 193, 177, 0.14);
+      --border-strong: rgba(184, 193, 177, 0.3);
+      --text-main: #f0f4ed;          /* Yumuşak tebeşir beyazı */
+      --text-muted: #a3aca1;         /* Mat adaçayı gri */
+      --text-faint: #6e776d;
+      --accent-primary: #e06346;     /* Sıcak terracotta turuncu */
+      --accent-primary-hover: #f07458;
+      --accent-terracotta: #e06346;
+      --accent-terracotta-hover: #f07458;
+      --accent-ochre: #e5b94c;       /* Sıcak hardal sarısı */
+      --accent-ochre-bg: rgba(229, 185, 76, 0.15);
+      --timeline-canvas: #111513;
+      --timeline-slot: #1c221e;
+      --timeline-active: #2a332d;
+      --hatch-line: rgba(184, 193, 177, 0.12);
+    }
+
+    html.theme-light {
+      --bg-canvas: #b8c1b1;          /* Sıcak mat adaçayı kanvas */
+      --bg-panel: #d5dcd0;           /* Yumuşak tebeşir adaçayı panel */
+      --bg-surface: #e6ece1;         /* Açık mat krem yüzey */
+      --bg-contrast: #38423b;        /* Koyu zeytin kart */
+      --bg-contrast-text: #f5f7f3;
+      --bg-input: #c9d2c2;
+      --border-subtle: rgba(56, 66, 59, 0.15);
+      --border-strong: rgba(56, 66, 59, 0.35);
+      --text-main: #181f1b;          /* Koyu mürekkep */
+      --text-muted: #546057;         /* Adaçayı arduvaz */
+      --text-faint: #78857b;
+      --accent-primary: #e06346;
+      --accent-primary-hover: #c85338;
+      --accent-terracotta: #e06346;
+      --accent-terracotta-hover: #c85338;
+      --accent-ochre: #e5b94c;
+      --accent-ochre-bg: rgba(229, 185, 76, 0.2);
+      --timeline-canvas: #a9b3a2;
+      --timeline-slot: #c5cec0;
+      --timeline-active: #38423b;
+      --hatch-line: rgba(56, 66, 59, 0.18);
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Architectural Vertical Hatching Texture */
+    .bg-hatch {
+      background-image: repeating-linear-gradient(
+        to right,
+        var(--hatch-line),
+        var(--hatch-line) 1px,
+        transparent 1px,
+        transparent 6px
+      );
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-terracotta);
+    }
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+    .toast-anim { animation: slideDown 0.3s ease-out forwards; }
+    @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  </style>
+</head>
+<body class="antialiased font-sans h-screen flex flex-col select-none overflow-hidden">
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastBox" class="fixed top-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- TOP HEADER / NAV (DUAL THEME COMPATIBLE) -->
+  <header class="h-14 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-panel)]/95 backdrop-blur px-5 flex items-center justify-between z-20 transition-colors">
+    <div class="flex items-center space-x-4">
+      <!-- InfoShot Logo & Brand -->
+      <div class="flex items-center space-x-2.5">
+        <div id="brandLogoBadge" class="w-8 h-8 rounded-full bg-[var(--accent-primary)] flex items-center justify-center shadow-md text-white font-mono font-black text-xs ring-2 ring-[var(--accent-primary)]/20 transition-all">
+          <span>IS</span>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center space-x-1.5">
+            <span class="text-xs font-black tracking-wider text-[var(--text-main)] font-mono leading-none">INFOSHOT</span>
+            <span id="brandDeskPill" class="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30 leading-none transition-all">v1.0</span>
+          </div>
+          <span class="text-[9px] font-medium text-[var(--text-muted)] tracking-tight leading-none mt-1">Shot Recipe & Continuity</span>
+        </div>
+      </div>
+
+      <div class="h-5 w-[1px] bg-[var(--border-subtle)] mx-1"></div>
+
+      <!-- PROJE MENÜSÜ (ÖZEL DROPDOWN) -->
+      <div class="relative" id="projectMenuWrapper">
+        <button id="projectMenuBtn" onclick="toggleProjectMenu(event)" class="flex items-center space-x-2 bg-[var(--bg-surface)] hover:bg-[var(--bg-canvas)] text-xs font-bold text-[var(--text-main)] border border-[var(--border-subtle)] rounded-xl px-3 py-1.5 transition shadow-sm">
+          <span id="currentProjectTitle">Yükleniyor...</span>
+          <svg class="w-3.5 h-3.5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <!-- Dropdown Paneli -->
+        <div id="projectDropdownMenu" class="absolute top-11 left-0 w-64 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-2xl shadow-2xl py-2 z-50 hidden transition">
+          <div class="px-3 py-1 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider border-b border-[var(--border-subtle)]">
+            Projelerim
+          </div>
+
+          <!-- Proje Listesi -->
+          <div id="projectMenuItems" class="max-h-56 overflow-y-auto py-1"></div>
+
+          <div class="border-t border-[var(--border-subtle)] my-1"></div>
+
+          <!-- Menü İçi Aksiyonlar -->
+          <button onclick="openNewProjectModal(); closeProjectMenu();" class="w-full px-3 py-2 text-left text-xs font-bold text-[var(--accent-primary)] hover:bg-[var(--bg-panel)] flex items-center space-x-2 transition">
+            <span class="text-sm font-bold leading-none">+</span>
+            <span>Yeni Proje Oluştur</span>
+          </button>
+
+          <button onclick="promptRenameProject(); closeProjectMenu();" class="w-full px-3 py-1.5 text-left text-xs text-[var(--text-main)] hover:bg-[var(--bg-panel)] flex items-center space-x-2 transition">
+            <svg class="w-3.5 h-3.5 text-[var(--text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+            <span>Projeyi Yeniden Adlandır</span>
+          </button>
+
+          <button onclick="promptDeleteProject(); closeProjectMenu();" class="w-full px-3 py-1.5 text-left text-xs text-rose-600 hover:bg-rose-500/10 flex items-center space-x-2 transition font-medium">
+            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            <span>Bu Projeyi Sil</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="h-5 w-[1px] bg-[var(--border-subtle)] mx-1"></div>
+
+      <!-- ÇALIŞMA MODLARI (METİN / PİLL MENÜ) -->
+      <div class="flex items-center space-x-1 bg-[var(--bg-surface)] p-0.5 rounded-xl border border-[var(--border-subtle)] text-xs shadow-sm">
+        <button id="viewBtnCatalog" onclick="switchViewMode('catalog')" class="px-3 py-1.5 rounded-lg font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] transition flex items-center space-x-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-[var(--accent-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+          <span>Reçete Kataloğu</span>
+        </button>
+        <button id="viewBtnStudio" onclick="switchViewMode('studio')" class="px-3 py-1.5 rounded-lg font-bold bg-[var(--bg-contrast)] text-[var(--bg-contrast-text)] shadow-sm transition flex items-center space-x-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          <span>Stüdyo Masası</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- HEADER RIGHT CONTROLS -->
+    <div class="flex items-center space-x-3">
+      <!-- TEMA DEĞİŞTİRİCİ BUTON (AÇIK / KOYU MOD) -->
+      <button onclick="toggleTheme()" id="themeToggleBtn" title="Temayı Değiştir (Açık / Koyu)" class="w-8 h-8 bg-[var(--bg-surface)] hover:bg-[var(--bg-canvas)] border border-[var(--border-subtle)] rounded-xl text-[var(--text-main)] transition shadow-sm flex items-center justify-center cursor-pointer">
+        <span id="themeIcon" class="flex items-center justify-center"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- VIEW 1: REÇETE & VARLIK KATALOĞU (GRID)    -->
+  <!-- ========================================== -->
+  <section id="catalogViewContainer" class="flex-1 min-h-0 flex flex-col overflow-hidden bg-[var(--bg-canvas)]">
+    <!-- Toolbar: Filtreler, Arama, İstatistikler -->
+    <div class="h-12 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-panel)] px-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3 flex-1 max-w-2xl">
+        <!-- Arama Kutusu -->
+        <div class="relative flex-1">
+          <svg class="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-2.5 top-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="catalogSearchInput" oninput="renderCatalog()" placeholder="Prompt, skill veya sahne ara..." class="w-full h-8 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg pl-8 pr-3 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--accent-terracotta)] font-medium">
+        </div>
+
+        <!-- Sahne Seçici Filtresi -->
+        <select id="catalogSceneFilter" onchange="renderCatalog()" class="h-8 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2.5 text-xs text-[var(--text-main)] font-medium focus:outline-none cursor-pointer shrink-0">
+          <option value="all">Tüm Sahneler (Hepsi)</option>
+        </select>
+
+        <!-- Sadece Master Filtresi (Varsayılan Olarak Açık) -->
+        <button id="catalogMasterToggle" onclick="toggleCatalogMasterFilter()" class="h-8 px-2.5 bg-amber-400/15 text-amber-300 hover:bg-amber-400/25 border border-amber-500/30 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer shrink-0">
+          <span id="catalogMasterStar" class="text-amber-400 text-xs">★</span>
+          <span>Sadece Masterlar</span>
+        </button>
+      </div>
+
+      <!-- Sağ Sayaç -->
+      <div class="flex items-center space-x-2 text-xs text-[var(--text-muted)] font-mono">
+        <span id="catalogStatsText">0 Üretim Kartuşu</span>
+      </div>
+    </div>
+
+    <!-- Scrollable Grid -->
+    <div class="flex-1 overflow-y-auto p-4">
+      <div id="catalogGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+        <!-- Dinamik Reçete Kartları Buraya Dolacak -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================== -->
+  <!-- VIEW 2: STÜDYO MASASI (PREVIEW & INSPECTOR)-->
+  <!-- ========================================== -->
+  <main id="studioViewContainer" class="flex-1 min-h-0 flex overflow-hidden hidden bg-[var(--bg-canvas)]">
+    
+    <!-- LEFT: PREVIEW SCREEN & TAKES (GENİŞ SİNEMATİK MEDYA ALANI) -->
+    <section class="flex-1 min-w-0 h-full flex flex-col bg-[var(--bg-canvas)] overflow-hidden">
+      
+      <!-- 1. Canlı Monitör Başlık Satırı (Minimalist) -->
+      <div class="h-10 shrink-0 border-b border-[var(--border-subtle)] bg-[var(--bg-panel)] px-4 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <span class="w-2 h-2 rounded-full bg-[var(--accent-primary)] animate-pulse"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)]">Canlı Monitör</span>
+          <span id="previewShotTitle" class="text-xs bg-[var(--bg-surface)] text-[var(--text-main)] font-semibold px-2.5 py-0.5 rounded-lg border border-[var(--border-subtle)]">Shot 01</span>
+        </div>
+
+        <!-- KLASÖRÜ AÇ BUTONU -->
+        <button id="openFolderBtn" onclick="openFolderInFinder()" title="Finder'da Bu Sahnenin Klasörünü Aç" class="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-canvas)] border border-[var(--border-subtle)] text-[var(--text-main)] text-xs font-semibold rounded-lg shadow-sm transition flex items-center space-x-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5 text-[var(--accent-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          <span>Klasör</span>
+        </button>
+      </div>
+
+      <!-- 2. Dinamik Medya Sahnesi (Merkezi Genişletilmiş Viewport) -->
+      <div id="videoContainer" class="flex-1 min-h-0 w-full flex items-center justify-center p-4 relative overflow-hidden bg-[var(--bg-canvas)]">
+        <!-- Dinamik Video / Görsel / Placeholder buraya basılacak -->
+      </div>
+
+      <!-- 3. Bottom Strip: Sahne Varyasyonları (Takes) & Navigasyon (Reference Alt Bar Stili) -->
+      <div class="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-panel)] flex flex-col">
+        <!-- Filmstrip Üst Başlığı -->
+        <div class="px-4 py-1.5 flex items-center justify-between border-b border-[var(--border-subtle)]/60 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-[var(--text-main)] flex items-center gap-1.5">
+              <span>🎞️</span>
+              <span>Sahne Varyasyonları (Takes)</span>
+              <span id="takesCountBadge" class="text-[10px] bg-[var(--bg-surface)] text-[var(--text-muted)] font-mono px-2 py-0.5 rounded-md font-bold">0 Take</span>
+            </span>
+          </div>
+          <span class="text-[10px] text-[var(--text-muted)]">Her yeni indirme otomatik varyasyon olarak eklenir</span>
+        </div>
+
+        <!-- Yatay Filmstrip Konteyneri -->
+        <div id="takesFilmstripContainer" class="px-4 py-2 flex items-center space-x-3 overflow-x-auto custom-scrollbar min-h-[90px]">
+          <!-- Dinamik Take Kartuşları -->
+        </div>
+
+        <!-- Filmstrip Alt Navigasyon Barı (Reference "1 of 901" tarzı sayaç & oynatıcı) -->
+        <div class="h-9 px-4 bg-[var(--bg-surface)]/40 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs text-[var(--text-muted)] select-none">
+          <div class="flex items-center space-x-3">
+            <button onclick="changeCurrentShotOffset(-1)" title="Önceki Sahneye Geç" class="p-1 rounded-lg hover:bg-[var(--bg-surface)] hover:text-[var(--text-main)] transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <span id="takesPaginationText" class="font-mono text-xs font-bold text-[var(--text-main)]">Sahne 1</span>
+            <button onclick="changeCurrentShotOffset(1)" title="Sonraki Sahneye Geç" class="p-1 rounded-lg hover:bg-[var(--bg-surface)] hover:text-[var(--text-main)] transition cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+            </button>
+
+            <div class="h-3.5 w-[1px] bg-[var(--border-subtle)] mx-1"></div>
+
+            <button onclick="addNewShot()" title="Yeni Sahne Ekle" class="px-2 py-0.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-canvas)] border border-[var(--border-subtle)] text-[var(--text-main)] font-semibold text-[11px] transition flex items-center space-x-1 cursor-pointer shadow-sm">
+              <span class="text-[var(--accent-primary)] font-bold text-xs">+</span>
+              <span>Sahne Ekle</span>
+            </button>
+            <button onclick="deleteActiveShot()" title="Aktif Sahneyi Sil (Çöp Sepetine Gönder)" class="p-1 rounded-lg hover:bg-rose-500/10 text-[var(--text-muted)] hover:text-rose-500 transition cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+          </div>
+
+          <!-- Video Playback Kontrolü -->
+          <div class="flex items-center space-x-2">
+            <button id="playBtn" onclick="togglePlayVideo()" class="px-3 py-1 rounded-lg bg-[var(--accent-primary)] hover:opacity-90 text-white flex items-center space-x-1.5 text-xs font-bold shadow-sm transition">
+              <svg id="playIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              <span>Oynat</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: INSPECTOR PANEL (REFERENCE STİLİ TEMİZ DİKEY FORM) -->
+    <section id="recipeSection" class="w-80 md:w-96 xl:w-[410px] shrink-0 h-full min-h-0 bg-[var(--bg-panel)] border-l border-[var(--border-subtle)] p-4 overflow-y-auto flex flex-col space-y-4 pb-20 transition-colors custom-scrollbar">
+      
+      <!-- Panel Header: Reçete Masası & Master Butonu -->
+      <div class="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5 shrink-0">
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-[var(--text-main)]">Reçete Masası</span>
+          <span id="activeShotBadge" class="text-[10px] bg-[var(--bg-surface)] text-[var(--text-muted)] px-2 py-0.5 rounded-md font-mono font-bold border border-[var(--border-subtle)]">Shot 01 Aktif</span>
+        </div>
+        <div id="recipeMasterBtnContainer"></div>
+      </div>
+
+      <!-- 1. NAME (Sahne Başlığı) -->
+      <div>
+        <label class="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider block mb-1.5">Name</label>
+        <div class="relative flex items-center">
+          <input type="text" id="shotTitleInput" 
+                 onchange="updateActiveShotField('title', this.value)" 
+                 onkeydown="if(event.key === 'Enter') { this.blur(); }" 
+                 placeholder="Örn: Shot 01: Giriş Sahnesi" 
+                 class="w-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl px-3.5 py-2 pr-8 text-xs text-[var(--text-main)] focus:outline-none focus:border-[var(--accent-primary)] font-medium transition shadow-sm">
+          <button onclick="updateActiveShotField('title', document.getElementById('shotTitleInput').value)" title="Başlığı Kaydet" class="absolute right-2 p-1 text-[var(--text-muted)] hover:text-[var(--accent-primary)] transition cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. CAPTION (Oluşturulan Prompt & Kopyala Butonu) -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Caption</label>
+          <button onclick="copyPromptText()" id="copyBtn" class="text-[11px] bg-[var(--accent-primary)] hover:opacity-90 text-white font-bold px-2.5 py-0.5 rounded-lg transition flex items-center space-x-1 shadow-sm cursor-pointer">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>Kopyala</span>
+          </button>
+        </div>
+        <textarea id="promptTextarea" onchange="updateActiveShotField('prompt', this.value)" rows="4" placeholder="Antigravity promptunu buraya yazın veya yapıştırın..." class="w-full bg-[var(--bg-surface)] p-3 rounded-xl border border-[var(--border-subtle)] font-mono text-xs text-[var(--text-main)] leading-relaxed focus:outline-none focus:border-[var(--accent-primary)] resize-none shadow-sm"></textarea>
+      </div>
+
+      <!-- 3. TAGS (Kullanılan Skiller - Reference Pill Tasarımı) -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Tags</label>
+          <div class="relative" id="addSkillWrapper">
+            <button onclick="toggleAddSkillMenu(event)" class="text-[11px] font-semibold text-[var(--accent-primary)] hover:opacity-80 bg-[var(--bg-surface)] px-2 py-0.5 rounded-lg border border-[var(--border-subtle)] transition flex items-center space-x-1">
+              <span>+ Skill Ekle</span>
+            </button>
+            <div id="addSkillDropdown" class="absolute right-0 top-7 w-56 bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-xl shadow-2xl py-1 z-50 hidden"></div>
+          </div>
+        </div>
+        <div id="skillsContainer" class="flex flex-wrap items-center gap-1.5 min-h-[26px]">
+          <!-- Dinamik skill etiketleri -->
+        </div>
+      </div>
+
+      <!-- 4. GALLERY / ASSETS: REFERANS GÖRSELLER -->
+      <div class="pt-2 border-t border-[var(--border-subtle)]">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-1.5">
+            <label class="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Referans Görseller</label>
+            <span id="refCountBadge" class="text-[10px] bg-[var(--bg-surface)] text-[var(--text-muted)] font-mono px-2 py-0.5 rounded-md font-bold">0 Görsel</span>
+          </div>
+          <span class="text-[9px] text-[var(--text-muted)]">Prompt referansları</span>
+        </div>
+        <input type="file" id="refFileInput" multiple accept="image/*" class="hidden" onchange="handleAssetUpload(event, 'references')">
+        <div id="refThumbnailsGrid" class="flex flex-wrap gap-2 items-start"></div>
+      </div>
+
+      <!-- 5. GALLERY / ASSETS: STİLLER (Style Referansları) -->
+      <div class="pt-2 border-t border-[var(--border-subtle)]">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center space-x-1.5">
+            <label class="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider">Stiller (Style Referansları)</label>
+            <span id="styleCountBadge" class="text-[10px] bg-[var(--bg-surface)] text-[var(--accent-ochre)] font-mono px-2 py-0.5 rounded-md font-bold">0 Görsel</span>
+          </div>
+          <span class="text-[9px] text-[var(--text-muted)]">Stil aktarımı</span>
+        </div>
+        <input type="file" id="styleFileInput" multiple accept="image/*" class="hidden" onchange="handleAssetUpload(event, 'styles')">
+        <div id="styleThumbnailsGrid" class="flex flex-wrap gap-2 items-start"></div>
+      </div>
+
+      <!-- 6. METADATA (REFERENCE 2-COLUMN TABLE FORMAT) -->
+      <div class="pt-3 border-t border-[var(--border-subtle)]">
+        <label class="text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wider block mb-2">Metadata</label>
+        <div id="mediaInfoCard"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- NEW PROJECT MODAL -->
+  <div id="newProjectModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-[var(--bg-surface)] border border-[var(--border-strong)] rounded-2xl p-6 w-full max-w-md shadow-2xl text-[var(--text-main)]">
+      <h3 class="text-sm font-bold mb-1">Yeni Proje Oluştur</h3>
+      <p class="text-xs text-[var(--text-muted)] mb-4">Masaüstündeki <code class="text-[var(--accent-terracotta)] font-bold">projeler/</code> klasöründe bu isimle yeni bir klasör açılacak.</p>
+      
+      <div class="mb-5">
+        <label class="block text-xs font-bold text-[var(--text-main)] mb-1">Proje Adı</label>
+        <input type="text" id="newProjectNameInput" placeholder="Örn: Otomobil Reklamı, Bilim Kurgu Teaser" class="w-full bg-[var(--bg-input)] border border-[var(--border-strong)] rounded-xl px-3 py-2 text-xs text-[var(--text-main)] font-semibold focus:outline-none focus:border-[var(--accent-terracotta)]">
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <button onclick="closeNewProjectModal()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-[var(--text-muted)] hover:bg-[var(--bg-panel)] transition">İptal</button>
+        <button onclick="submitNewProject()" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-[var(--accent-terracotta)] hover:bg-[var(--accent-terracotta-hover)] text-white shadow-md transition">Oluştur</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT LOGIC & DUAL THEME CONTROLLER -->
+  <script>
+    let currentProject = null;
+    let activeShotId = null;
+    let lastKnownCapture = null;
+    let lastKnownProjectVersion = null;
+    let currentViewMode = localStorage.getItem('ai_studio_view_mode') || 'catalog';
+    if (currentViewMode === 'timeline') currentViewMode = 'catalog';
+    let catalogOnlyMaster = true;
+
+    const AVAILABLE_SKILLS = [
+      "brainlab-cinematic-output",
+      "brainlab-realistic-output",
+      "brainlab-gercekci-kusurlar",
+      "still-kopyalama"
+    ];
+
+    // HTML Sanitization (XSS koruması)
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // TEMA YÖNETİMİ (AÇIK / KOYU MOD)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('ai_studio_theme') || 'theme-light';
+      applyTheme(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.classList.contains('theme-dark') ? 'theme-dark' : 'theme-light';
+      const next = (current === 'theme-light') ? 'theme-dark' : 'theme-light';
+      applyTheme(next);
+      localStorage.setItem('ai_studio_theme', next);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.classList.remove('theme-light', 'theme-dark');
+      document.documentElement.classList.add(theme);
+      
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        if (theme === 'theme-dark') {
+          // Gece modundayken gündüze geçmek için Güneş ikonu
+          icon.innerHTML = `<svg class="w-4 h-4 text-[var(--accent-ochre)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
+        } else {
+          // Gündüz modundayken geceye geçmek için Hilal/Ay ikonu
+          icon.innerHTML = `<svg class="w-4 h-4 text-[var(--text-main)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
+        }
+      }
+    }
+
+    async function init() {
+      initTheme();
+      await loadProjectsList();
+      switchViewMode(currentViewMode);
+      pollStatus();
+      setInterval(pollStatus, 2000);
+    }
+
+    async function toggleProjectMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('projectDropdownMenu');
+      const isOpening = menu.classList.contains('hidden');
+      if (isOpening) {
+        await loadProjectsList(currentProject ? currentProject.id : null);
+      }
+      menu.classList.toggle('hidden');
+    }
+
+    function closeProjectMenu() {
+      const menu = document.getElementById('projectDropdownMenu');
+      if (menu) menu.classList.add('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('projectMenuWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeProjectMenu();
+      }
+    });
+
+    async function loadProjectsList(selectedId = null) {
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        const itemsContainer = document.getElementById('projectMenuItems');
+        itemsContainer.innerHTML = '';
+
+        const targetId = selectedId || (currentProject ? currentProject.id : null) || data.active_project_id || (data.projects[0] ? data.projects[0].id : null);
+
+        data.projects.forEach(p => {
+          const isCurrent = (p.id === targetId);
+          const btn = document.createElement('button');
+          btn.className = `w-full px-3 py-2 text-left text-xs flex items-center justify-between transition rounded-xl mx-0.5 ${isCurrent ? 'bg-[var(--accent-terracotta)] text-white font-bold shadow-sm' : 'text-[var(--text-main)] hover:bg-[var(--bg-panel)]'}`;
+          btn.onclick = () => {
+            onProjectChange(p.id);
+            closeProjectMenu();
+          };
+          btn.innerHTML = `
+            <span class="truncate">${escapeHtml(p.name)}</span>
+            ${isCurrent ? '<span class="text-white font-bold ml-2">✓</span>' : ''}
+          `;
+          itemsContainer.appendChild(btn);
+        });
+
+        if (targetId && (!currentProject || currentProject.id !== targetId)) {
+          await loadProjectDetails(targetId);
+        }
+      } catch (e) {
+        console.error('Proje listesi yüklenemedi:', e);
+      }
+    }
+
+    async function loadProjectDetails(projectId, targetShotIdToSelect = null) {
+      try {
+        const res = await fetch('/api/project?id=' + projectId);
+        currentProject = await res.json();
+        
+        if (currentProject && currentProject.name) {
+          document.getElementById('currentProjectTitle').innerText = currentProject.name;
+        }
+
+        if (targetShotIdToSelect && currentProject.shots && currentProject.shots.find(s => s.id === targetShotIdToSelect)) {
+          activeShotId = targetShotIdToSelect;
+        } else if (currentProject.shots && currentProject.shots.length > 0) {
+          if (!activeShotId || !currentProject.shots.find(s => s.id === activeShotId)) {
+            activeShotId = currentProject.shots[0].id;
+          }
+        } else {
+          activeShotId = null;
+        }
+
+        renderTimeline();
+        renderInspector();
+        renderPreview();
+        renderCatalog();
+        updateActiveShotTarget(activeShotId);
+      } catch (e) {
+        console.error('Proje detayı yüklenemedi:', e);
+      }
+    }
+
+    async function onProjectChange(newId) {
+      if (newId) {
+        activeShotId = null;
+        await loadProjectDetails(newId);
+        await loadProjectsList(newId);
+      }
+    }
+
+    function renderTimeline() {
+      // Timeline modu InfoShot v1.0 sürümünde kaldırıldı
+    }
+
+    function selectShot(shotId) {
+      activeShotId = shotId;
+      renderTimeline();
+      renderInspector();
+      renderPreview();
+      updateActiveShotTarget(shotId);
+    }
+
+    async function updateActiveShotTarget(shotId) {
+      if (!currentProject || !shotId) return;
+      const wt = document.getElementById('watchTargetText');
+      if (wt) wt.innerText = `Hedef: ${shotId}`;
+      try {
+        await fetch('/api/set_active_shot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId })
+        });
+      } catch (e) {}
+    }
+
+    function renderInspector() {
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      if (!shot) return;
+
+      let activeTake = null;
+      if (shot.takes && shot.takes.length > 0) {
+        if (shot.active_take_id) {
+          activeTake = shot.takes.find(t => t.id === shot.active_take_id);
+        }
+        if (!activeTake) {
+          activeTake = shot.takes.find(t => t.is_master) || shot.takes[shot.takes.length - 1];
+        }
+      }
+
+      const activeTarget = activeTake || shot;
+
+      const takeBadgeText = activeTake 
+        ? `${shot.id.toUpperCase()} • ${activeTake.id.toUpperCase()}`
+        : `${shot.id.toUpperCase()} Aktif`;
+
+      document.getElementById('activeShotBadge').innerText = takeBadgeText;
+
+      const masterBtnContainer = document.getElementById('recipeMasterBtnContainer');
+      if (masterBtnContainer) {
+        if (activeTake) {
+          if (activeTake.is_master) {
+            masterBtnContainer.innerHTML = `
+              <span class="px-2.5 py-0.5 rounded-lg bg-amber-400 text-black font-mono font-bold text-[11px] flex items-center space-x-1 shadow-sm border border-amber-500">
+                <span>★</span>
+                <span>MASTER TAKE</span>
+              </span>
+            `;
+          } else {
+            masterBtnContainer.innerHTML = `
+              <button onclick="setMasterTake(event, '${shot.id}', '${activeTake.id}')" title="Bu varyasyonu ana kurgu için Master Take yap" class="px-2.5 py-0.5 rounded-lg bg-[var(--bg-surface)] hover:bg-amber-400 hover:text-black text-amber-500 hover:border-amber-500 border border-amber-500/40 font-mono font-bold text-[11px] flex items-center space-x-1.5 transition cursor-pointer shadow-sm group">
+                <span class="text-amber-500 group-hover:text-black transition">☆</span>
+                <span>Master Yap</span>
+              </button>
+            `;
+          }
+        } else {
+          masterBtnContainer.innerHTML = '';
+        }
+      }
+      if (document.activeElement !== document.getElementById('shotTitleInput')) {
+        document.getElementById('shotTitleInput').value = shot.title || '';
+      }
+      
+      const promptToShow = (activeTarget && activeTarget.prompt) ? activeTarget.prompt : (shot.prompt || '');
+      if (document.activeElement !== document.getElementById('promptTextarea')) {
+        document.getElementById('promptTextarea').value = promptToShow;
+      }
+
+      renderMediaInfo(activeTarget);
+      renderSkills(activeTarget);
+      renderThumbnails(activeTarget, 'references', 'refThumbnailsGrid', 'refCountBadge', 'refFileInput');
+      renderThumbnails(activeTarget, 'styles', 'styleThumbnailsGrid', 'styleCountBadge', 'styleFileInput');
+    }
+
+    function renderMediaInfo(target) {
+      const el = document.getElementById('mediaInfoCard');
+      if (!el) return;
+      const info = target?.media_info;
+
+      if (!info || !info.resolution || info.resolution === 'Bilinmiyor') {
+        el.innerHTML = `
+          <div class="flex flex-col space-y-2 text-xs py-1 text-[var(--text-muted)]">
+            <div class="flex items-center justify-between py-0.5 gap-2">
+              <span class="text-[var(--text-muted)] shrink-0">Dosya</span>
+              <span id="fileInfoText" class="font-mono text-[11px] font-semibold text-[var(--text-faint)] italic truncate text-right">Higgsfield Bekleniyor...</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>Status</span>
+              <span class="text-[var(--text-faint)] italic">Henüz indirilmedi</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const modelName = info.model || info.model_source || 'GPT Image 2.5 Sunburst';
+      const qualityName = info.quality || info.quality_tier || 'Max';
+      const creditsVal = info.credits !== undefined && info.credits !== null ? info.credits : (qualityName === 'Max' ? 10 : 5);
+      const activeFileName = (target && target.file) || (info && info.file) || 'Bekleniyor';
+
+      el.innerHTML = `
+        <div class="flex flex-col space-y-2 text-xs">
+          <!-- Dosya Adı Row (Turuncu Vurgulu & Tıkla Kopyala) -->
+          <div class="flex items-center justify-between py-0.5 gap-2">
+            <span class="text-[var(--text-muted)] shrink-0">Dosya</span>
+            <span id="fileInfoText" class="font-mono text-[11px] font-semibold text-[var(--accent-primary)] truncate text-right hover:underline cursor-pointer max-w-[210px]" onclick="copySpecificPrompt(event, this.innerText)" title="${escapeHtml(activeFileName)} (Kopyalamak için tıkla)">${escapeHtml(activeFileName)}</span>
+          </div>
+
+          <!-- Model Row -->
+          <div class="flex items-center justify-between py-0.5">
+            <span class="text-[var(--text-muted)]">Model</span>
+            <div class="relative inline-flex items-center">
+              <select onchange="updateTakeModel(this.value)" class="bg-[var(--bg-surface)] text-[var(--text-main)] font-medium text-xs rounded-lg px-2 py-0.5 border border-[var(--border-subtle)] outline-none cursor-pointer">
+                <option value="GPT Image 2.5 Sunburst" ${modelName.includes('Sunburst') || modelName.includes('GPT') ? 'selected' : ''}>GPT Image 2.5 Sunburst</option>
+                <option value="Kling AI" ${modelName.includes('Kling') ? 'selected' : ''}>Kling AI</option>
+                <option value="Seedance" ${modelName.includes('Seedance') ? 'selected' : ''}>Seedance</option>
+                <option value="Wan 2.1" ${modelName.includes('Wan') ? 'selected' : ''}>Wan 2.1</option>
+                <option value="Veo 2" ${modelName.includes('Veo') ? 'selected' : ''}>Veo 2</option>
+                <option value="Midjourney v6" ${modelName.includes('Midjourney') ? 'selected' : ''}>Midjourney v6</option>
+                <option value="FLUX.1" ${modelName.includes('FLUX') ? 'selected' : ''}>FLUX.1</option>
+                <option value="Higgsfield AI" ${modelName === 'Higgsfield AI' ? 'selected' : ''}>Higgsfield AI</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quality Row -->
+          <div class="flex items-center justify-between py-0.5">
+            <span class="text-[var(--text-muted)]">Quality</span>
+            <span class="font-medium text-[var(--text-main)]">${escapeHtml(qualityName)}</span>
+          </div>
+
+          <!-- Resolution Row -->
+          <div class="flex items-center justify-between py-0.5">
+            <span class="text-[var(--text-muted)]">Resolution</span>
+            <span class="font-mono text-[var(--text-main)]">${escapeHtml(info.resolution)} ${info.aspect_ratio ? `(${escapeHtml(info.aspect_ratio)})` : ''}</span>
+          </div>
+
+          <!-- Size Row -->
+          <div class="flex items-center justify-between py-0.5">
+            <span class="text-[var(--text-muted)]">Size</span>
+            <span class="font-mono text-[var(--text-main)]">${escapeHtml(info.size_str || 'Bilinmiyor')}</span>
+          </div>
+
+          <!-- Credits Row (Genişletilmiş 3 haneli ve düzgün ikonlu) -->
+          <div class="flex items-center justify-between py-0.5">
+            <span class="text-[var(--text-muted)]">Credits</span>
+            <div class="flex items-center space-x-1.5">
+              <input type="number" min="0" max="999" value="${creditsVal}" onchange="updateTakeCredits(this.value)" class="w-14 bg-[var(--bg-surface)] border border-[var(--border-subtle)] focus:border-[var(--accent-primary)] rounded-lg px-1.5 py-0.5 text-center font-mono font-bold text-amber-400 text-xs outline-none shadow-sm transition [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+              <span class="text-amber-400 text-sm font-bold shrink-0 select-none">⚡</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSkills(target) {
+      const container = document.getElementById('skillsContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      
+      const activeSkills = (target && target.skills) || (target && target.skill ? [target.skill] : []);
+
+      if (!activeSkills || activeSkills.length === 0) {
+        const noSkillBadge = document.createElement('div');
+        noSkillBadge.className = "px-2.5 py-1 rounded-lg text-xs font-mono bg-[var(--bg-surface)] text-[var(--text-muted)] border border-[var(--border-subtle)] flex items-center space-x-1.5 font-medium";
+        noSkillBadge.innerHTML = `
+          <span class="w-1.5 h-1.5 rounded-full bg-[var(--text-faint)]"></span>
+          <span>No Skill (Manuel Prompt)</span>
+        `;
+        container.appendChild(noSkillBadge);
+      } else {
+        activeSkills.forEach(skill => {
+          const chip = document.createElement('div');
+          chip.className = "px-2.5 py-1 rounded-lg text-xs font-mono bg-[var(--bg-contrast)] text-[var(--bg-contrast-text)] border border-[var(--border-subtle)] font-medium shadow-sm flex items-center space-x-1.5";
+          chip.innerHTML = `
+            <span>${escapeHtml(skill)}</span>
+            <button onclick="removeSkill('${escapeHtml(skill)}')" title="Bu skilli kaldır" class="hover:text-rose-500 text-[var(--text-muted)] p-0.5 rounded transition cursor-pointer">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          `;
+          container.appendChild(chip);
+        });
+      }
+
+      renderAddSkillDropdown(activeSkills);
+    }
+
+    function renderAddSkillDropdown(activeSkills) {
+      const dropdown = document.getElementById('addSkillDropdown');
+      dropdown.innerHTML = '';
+      
+      const unselected = AVAILABLE_SKILLS.filter(s => !activeSkills.includes(s));
+
+      if (unselected.length === 0) {
+        dropdown.innerHTML = '<div class="px-3 py-1.5 text-[11px] text-[var(--text-muted)] italic">Tüm skiller eklendi</div>';
+        return;
+      }
+
+      unselected.forEach(skill => {
+        const item = document.createElement('button');
+        item.className = "w-full text-left px-3 py-1.5 text-xs text-[var(--text-main)] hover:bg-[var(--bg-panel)] transition font-mono flex items-center space-x-1.5";
+        item.innerHTML = `<span class="text-[var(--accent-terracotta)] font-bold">+</span><span>${escapeHtml(skill)}</span>`;
+        item.onclick = () => {
+          addSkill(skill);
+          closeAddSkillMenu();
+        };
+        dropdown.appendChild(item);
+      });
+    }
+
+    function toggleAddSkillMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('addSkillDropdown');
+      menu.classList.toggle('hidden');
+    }
+
+    function closeAddSkillMenu() {
+      const menu = document.getElementById('addSkillDropdown');
+      if (menu) menu.classList.add('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('addSkillWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeAddSkillMenu();
+      }
+    });
+
+    async function addSkill(skill) {
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      if (!shot) return;
+      const activeTake = shot.takes?.find(t => t.id === shot.active_take_id) || shot.takes?.find(t => t.is_master) || shot.takes?.[shot.takes.length - 1];
+      const target = activeTake || shot;
+
+      if (!target.skills) target.skills = target.skill ? [target.skill] : [];
+      if (!target.skills.includes(skill)) {
+        target.skills.push(skill);
+        target.skill = target.skills[0];
+
+        if (!shot.skills) shot.skills = [];
+        if (!shot.skills.includes(skill)) shot.skills.push(skill);
+        shot.skill = shot.skills[0];
+
+        await updateActiveShotField('skills', shot.skills);
+        renderSkills(target);
+      }
+    }
+
+    async function removeSkill(skill) {
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      if (!shot) return;
+      const activeTake = shot.takes?.find(t => t.id === shot.active_take_id) || shot.takes?.find(t => t.is_master) || shot.takes?.[shot.takes.length - 1];
+      const target = activeTake || shot;
+
+      if (!target.skills) return;
+      target.skills = target.skills.filter(s => s !== skill);
+      target.skill = target.skills[0] || null;
+
+      shot.skills = [...target.skills];
+      shot.skill = target.skill;
+
+      await updateActiveShotField('skills', shot.skills);
+      renderSkills(target);
+    }
+
+    function renderThumbnails(target, category, gridId, countBadgeId, fileInputId) {
+      const grid = document.getElementById(gridId);
+      const badge = document.getElementById(countBadgeId);
+      grid.innerHTML = '';
+
+      const items = (target && target[category]) || [];
+      badge.innerText = `${items.length} Görsel`;
+
+      items.forEach(filename => {
+        const div = document.createElement('div');
+        div.className = "w-28 p-1.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] relative group shadow-sm flex flex-col justify-between shrink-0 transition cursor-pointer hover:scale-[1.02]";
+        const assetUrl = `/api/asset?project=${currentProject.id}&shot=${activeShotId}&category=${category}&file=${encodeURIComponent(filename)}`;
+        div.onclick = () => window.open(assetUrl, '_blank');
+        div.title = `${filename} (Büyük boyutta görmek için tıklayın)`;
+        
+        div.innerHTML = `
+          <div class="w-full h-14 bg-black/10 rounded-lg overflow-hidden relative">
+            <img src="${assetUrl}" alt="${escapeHtml(filename)}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center p-1">
+              <button onclick="event.stopPropagation(); removeAsset('${category}', '${escapeHtml(filename)}')" title="Bu görseli sil" class="p-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition shadow-sm cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="mt-1 flex items-center justify-between text-[9px] font-mono text-[var(--text-muted)]">
+            <span class="truncate" title="${escapeHtml(filename)}">${escapeHtml(filename)}</span>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.onclick = () => document.getElementById(fileInputId).click();
+      addBtn.className = "w-28 h-[82px] rounded-xl border-2 border-dashed border-[var(--border-strong)] hover:border-[var(--accent-terracotta)] bg-[var(--bg-surface)] flex flex-col items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent-terracotta)] transition cursor-pointer p-1 shadow-sm shrink-0";
+      addBtn.innerHTML = `
+        <span class="text-base leading-none font-bold mb-0.5">+</span>
+        <span class="text-[9px] font-bold">Görsel Ekle</span>
+      `;
+      grid.appendChild(addBtn);
+    }
+
+    async function handleAssetUpload(event, category) {
+      const files = event.target.files;
+      if (!files || files.length === 0 || !currentProject || !activeShotId) return;
+
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      const activeTake = shot?.takes?.find(t => t.id === shot.active_take_id) || shot?.takes?.find(t => t.is_master) || shot?.takes?.[shot.takes.length - 1];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        
+        await new Promise((resolve) => {
+          reader.onload = async (e) => {
+            const base64Data = e.target.result;
+            try {
+              const res = await fetch('/api/project/add_asset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  project_id: currentProject.id,
+                  shot_id: activeShotId,
+                  take_id: activeTake ? activeTake.id : null,
+                  category: category,
+                  filename: file.name,
+                  data: base64Data
+                })
+              });
+              const data = await res.json();
+              if (data.success) {
+                currentProject = data.project;
+              }
+            } catch (err) {
+              console.error('Asset yüklenemedi:', err);
+            }
+            resolve();
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      event.target.value = '';
+      showToast(`${files.length} görsel ${category === 'references' ? 'Referanslara' : 'Stillere'} eklendi!`);
+      renderInspector();
+    }
+
+    async function removeAsset(category, filename) {
+      if (!confirm(`"${filename}" görselini silmek istediğinize emin misiniz?`)) return;
+
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      const activeTake = shot?.takes?.find(t => t.id === shot.active_take_id) || shot?.takes?.find(t => t.is_master) || shot?.takes?.[shot.takes.length - 1];
+
+      try {
+        const res = await fetch('/api/project/remove_asset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: currentProject.id,
+            shot_id: activeShotId,
+            take_id: activeTake ? activeTake.id : null,
+            category: category,
+            filename: filename
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          showToast(`Görsel silindi.`);
+          renderInspector();
+        }
+      } catch (err) {
+        alert('Görsel silinemedi: ' + err);
+      }
+    }
+
+    function renderPreview() {
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      const container = document.getElementById('videoContainer');
+      const titleEl = document.getElementById('previewShotTitle');
+      const fileInfo = document.getElementById('fileInfoText');
+
+      if (!shot) return;
+
+      let activeTake = null;
+      if (shot.takes && shot.takes.length > 0) {
+        if (shot.active_take_id) {
+          activeTake = shot.takes.find(t => t.id === shot.active_take_id);
+        }
+        if (!activeTake) {
+          activeTake = shot.takes.find(t => t.is_master) || shot.takes[shot.takes.length - 1];
+        }
+      }
+
+      const activeFile = activeTake ? activeTake.file : shot.file;
+      const activeFileType = activeTake ? activeTake.file_type : shot.file_type;
+
+      titleEl.innerText = `${shot.title} ${activeTake ? `(${activeTake.id.toUpperCase()}${activeTake.is_master ? ' ★' : ''})` : ''}`;
+
+      if (activeFile) {
+        if (fileInfo) {
+          fileInfo.innerText = activeFile;
+          fileInfo.title = `${activeFile} (Kopyalamak için tıkla)`;
+        }
+        const mediaUrl = `/api/media?project=${currentProject.id}&shot=${shot.id}&file=${encodeURIComponent(activeFile)}`;
+        
+        if (activeFileType === 'video') {
+          container.innerHTML = `
+            <video id="mainVideoPlayer" src="${mediaUrl}" controls autoplay loop class="max-h-full max-w-full w-auto h-auto object-contain rounded-2xl border border-[var(--border-strong)] shadow-2xl bg-black/50"></video>
+          `;
+        } else {
+          container.innerHTML = `
+            <img src="${mediaUrl}" alt="${escapeHtml(shot.title)}" class="max-h-full max-w-full w-auto h-auto object-contain rounded-2xl border border-[var(--border-strong)] shadow-2xl">
+          `;
+        }
+      } else {
+        if (fileInfo) {
+          fileInfo.innerText = "İndirme Bekleniyor...";
+          fileInfo.title = "Henüz çıktı üretilmedi";
+        }
+        container.innerHTML = `
+          <div class="w-full h-full max-h-96 border-2 border-dashed border-[var(--border-strong)] rounded-2xl flex flex-col items-center justify-center p-6 text-center bg-[var(--bg-surface)]/40 shadow-sm">
+            <div class="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-strong)] flex items-center justify-center text-[var(--accent-terracotta)] mb-3 shadow-sm">
+              <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            </div>
+            <h3 class="text-[var(--text-main)] text-sm font-bold">${escapeHtml(shot.title)}</h3>
+            <p class="text-xs text-[var(--text-muted)] mt-1 max-w-xs">Higgsfield'da üretip indirdiğinde dosya buraya otomatik gelecek.</p>
+          </div>
+        `;
+      }
+
+      renderTakesFilmstrip(shot, activeTake);
+    }
+
+    async function updateActiveShotField(field, value) {
+      const shot = currentProject?.shots?.find(s => s.id === activeShotId);
+      if (!shot) return;
+      shot[field] = value;
+
+      const activeTake = shot.takes?.find(t => t.id === shot.active_take_id) || shot.takes?.find(t => t.is_master) || shot.takes?.[shot.takes.length - 1];
+      if (activeTake && (field === 'prompt' || field === 'skills')) {
+        activeTake[field] = value;
+      }
+
+      // Anlık arayüz senkronizasyonu
+      if (field === 'title') {
+        const titleEl = document.getElementById('previewShotTitle');
+        if (titleEl) {
+          titleEl.innerText = `${value} ${activeTake ? `(${activeTake.id.toUpperCase()})` : ''}`;
+        }
+        const watchTarget = document.getElementById('watchTargetText');
+        if (watchTarget) {
+          watchTarget.innerText = `Hedef: ${value}`;
+        }
+      }
+
+      try {
+        const res = await fetch('/api/project/update_shot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot: shot })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (field === 'title') {
+            showToast(`✓ Sahne başlığı kaydedildi: "${value}"`);
+          } else if (field === 'prompt') {
+            showToast(`✓ Prompt güncellendi (${activeTake ? activeTake.id.toUpperCase() : 'Sahne'}).`);
+          }
+        }
+        renderTimeline();
+        renderCatalog();
+      } catch (e) {
+        console.error('Sahne güncellenemedi:', e);
+      }
+    }
+
+    async function addNewShot() {
+      if (!currentProject) return;
+      try {
+        const res = await fetch('/api/project/add_shot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          activeShotId = data.new_shot.id;
+          renderTimeline();
+          renderInspector();
+          renderPreview();
+          updateActiveShotTarget(activeShotId);
+          showToast(`Yeni sahne eklendi: ${data.new_shot.id}`);
+        }
+      } catch (e) {
+        console.error('Yeni sahne eklenemedi:', e);
+      }
+    }
+
+    async function deleteActiveShot() {
+      if (!currentProject || !activeShotId) return;
+      if (currentProject.shots.length <= 1) {
+        alert("Projede en az 1 sahne kalmalıdır.");
+        return;
+      }
+      const confirmDelete = confirm(`${activeShotId.toUpperCase()} sahnesini Çöp Sepetine göndermek istediğinize emin misiniz?`);
+      if (!confirmDelete) return;
+
+      try {
+        const res = await fetch('/api/project/delete_shot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: activeShotId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          activeShotId = data.new_active_shot;
+          renderTimeline();
+          renderInspector();
+          renderPreview();
+          updateActiveShotTarget(activeShotId);
+          showToast(`Sahne Çöp Sepetine taşındı.`);
+        }
+      } catch (e) {
+        alert('Sahne silinemedi: ' + e);
+      }
+    }
+
+    function openNewProjectModal() {
+      const modal = document.getElementById('newProjectModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      const input = document.getElementById('newProjectNameInput');
+      input.value = '';
+      input.focus();
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') submitNewProject();
+        if (e.key === 'Escape') closeNewProjectModal();
+      };
+    }
+
+    function closeNewProjectModal() {
+      const modal = document.getElementById('newProjectModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function submitNewProject() {
+      const input = document.getElementById('newProjectNameInput');
+      const name = input.value ? input.value.trim() : '';
+      if (!name) {
+        alert('Lütfen bir proje adı girin.');
+        return;
+      }
+      try {
+        const res = await fetch('/api/projects/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeNewProjectModal();
+          showToast(`"${name}" projesi oluşturuldu!`);
+          await loadProjectsList(data.project.id);
+        }
+      } catch (e) {
+        alert('Proje oluşturulamadı: ' + e);
+      }
+    }
+
+    async function promptRenameProject() {
+      if (!currentProject) return;
+      const newName = prompt('Projenin yeni adını girin:', currentProject.name);
+      if (newName && newName.trim() && newName !== currentProject.name) {
+        try {
+          const res = await fetch('/api/projects/rename', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: currentProject.id, name: newName.trim() })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('Proje adı güncellendi!');
+            await loadProjectsList(currentProject.id);
+          }
+        } catch (e) {
+          alert('Ad değiştirilemedi: ' + e);
+        }
+      }
+    }
+
+    async function promptDeleteProject() {
+      if (!currentProject) return;
+      const ok = confirm(`"${currentProject.name}" projesini Çöp Sepetine göndermek istediğinize emin misiniz?`);
+      if (!ok) return;
+
+      try {
+        const res = await fetch('/api/projects/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentProject.id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Proje Çöp Sepetine taşındı.');
+          await loadProjectsList(data.active_project_id);
+        }
+      } catch (e) {
+        alert('Proje silinemedi: ' + e);
+      }
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const state = await res.json();
+
+        const serverVersion = state.project_version;
+        const serverActiveShot = state.active_shot_id;
+        let needsReload = false;
+        let targetShotToSelect = null;
+
+        if (serverVersion && serverVersion !== lastKnownProjectVersion) {
+          if (lastKnownProjectVersion !== null) {
+            needsReload = true;
+          }
+          lastKnownProjectVersion = serverVersion;
+        }
+
+        if (state.last_captured) {
+          const cap = state.last_captured;
+          if (!lastKnownCapture || lastKnownCapture.timestamp !== cap.timestamp) {
+            lastKnownCapture = cap;
+            showToast(`🔥 [YAKALANDI] ${cap.filename} -> ${cap.shot_id.toUpperCase()} içine yerleştirildi!`);
+            needsReload = true;
+            targetShotToSelect = cap.shot_id;
+          }
+        }
+
+        if (needsReload && currentProject) {
+          await loadProjectDetails(currentProject.id, targetShotToSelect);
+        }
+      } catch (e) {}
+    }
+
+    function copyPromptText() {
+      const text = document.getElementById('promptTextarea').value;
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById('copyBtn');
+      btn.innerHTML = `<span>✓ Kopyalandı!</span>`;
+      setTimeout(() => {
+        btn.innerHTML = `<svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg><span>Kopyala</span>`;
+      }, 2000);
+    }
+
+    async function openFolderInFinder() {
+      if (!currentProject) return;
+      try {
+        const res = await fetch('/api/open_folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: currentProject.id,
+            shot_id: activeShotId
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`📂 Finder'da açıldı: ${activeShotId ? activeShotId.toUpperCase() : currentProject.name}`);
+        } else {
+          showToast("Klasör açılamadı: " + (data.error || "Hata"));
+        }
+      } catch (e) {
+        console.error("Klasör açılamadı:", e);
+      }
+    }
+
+    function toggleTrack() {}
+
+    function togglePlayVideo() {
+      const video = document.getElementById('mainVideoPlayer');
+      if (video) {
+        if (video.paused) video.play(); else video.pause();
+      }
+    }
+
+    function changeCurrentShotOffset(offset) {
+      if (!currentProject || !currentProject.shots) return;
+      const idx = currentProject.shots.findIndex(s => s.id === activeShotId);
+      if (idx !== -1) {
+        const nextIdx = idx + offset;
+        if (nextIdx >= 0 && nextIdx < currentProject.shots.length) {
+          selectShot(currentProject.shots[nextIdx].id);
+        }
+      }
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      const el = document.createElement('div');
+      el.className = "bg-[var(--accent-terracotta)] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-2xl border border-white/20 toast-anim flex items-center space-x-2";
+      el.innerHTML = `<span>${msg}</span>`;
+      box.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.4s';
+        setTimeout(() => el.remove(), 400);
+      }, 4000);
+    }
+
+    // ========================================================
+    // REÇETE & VARLIK KATALOĞU (LIGHTROOM CONTACT SHEET MANTIĞI)
+    // ========================================================
+    function switchViewMode(mode) {
+      if (mode === 'timeline') mode = 'studio';
+      currentViewMode = mode;
+      localStorage.setItem('ai_studio_view_mode', mode);
+      const catContainer = document.getElementById('catalogViewContainer');
+      const stuContainer = document.getElementById('studioViewContainer');
+
+      const btnCat = document.getElementById('viewBtnCatalog');
+      const btnStu = document.getElementById('viewBtnStudio');
+
+      const normalClass = "px-3 py-1.5 rounded-lg font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] transition flex items-center space-x-1.5 cursor-pointer";
+      const activeClass = "px-3 py-1.5 rounded-lg font-bold bg-[var(--bg-contrast)] text-[var(--bg-contrast-text)] shadow-sm transition flex items-center space-x-1.5 cursor-pointer";
+
+      if (btnCat) btnCat.className = normalClass;
+      if (btnStu) btnStu.className = normalClass;
+
+      if (mode === 'catalog') {
+        catContainer?.classList.remove('hidden');
+        stuContainer?.classList.add('hidden');
+        if (btnCat) btnCat.className = activeClass;
+        renderCatalog();
+      } else {
+        catContainer?.classList.add('hidden');
+        stuContainer?.classList.remove('hidden');
+        if (btnStu) btnStu.className = activeClass;
+        renderPreview();
+        renderInspector();
+      }
+    }
+
+    function toggleCatalogMasterFilter() {
+      catalogOnlyMaster = !catalogOnlyMaster;
+      const btn = document.getElementById('catalogMasterToggle');
+      const star = document.getElementById('catalogMasterStar');
+      if (catalogOnlyMaster) {
+        btn.className = "h-8 px-2.5 bg-amber-400/15 text-amber-300 hover:bg-amber-400/25 border border-amber-500/30 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer shrink-0";
+        if (star) star.className = "text-amber-400 text-xs";
+      } else {
+        btn.className = "h-8 px-2.5 bg-[var(--bg-surface)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)] rounded-lg text-xs font-medium transition flex items-center space-x-1.5 cursor-pointer shrink-0";
+        if (star) star.className = "text-[var(--text-muted)] text-xs";
+      }
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const grid = document.getElementById('catalogGrid');
+      const statsEl = document.getElementById('catalogStatsText');
+      const sceneFilter = document.getElementById('catalogSceneFilter');
+      const searchInput = document.getElementById('catalogSearchInput');
+
+      if (!grid || !currentProject || !currentProject.shots) return;
+
+      // Sahne filtresi dropdown'ını koruyarak güncelle
+      const currentSelected = sceneFilter.value || 'all';
+      sceneFilter.innerHTML = '<option value="all">Tüm Sahneler (Hepsi)</option>';
+      currentProject.shots.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.innerText = s.title;
+        if (s.id === currentSelected) opt.selected = true;
+        sceneFilter.appendChild(opt);
+      });
+
+      const selectedScene = sceneFilter.value || 'all';
+      const query = (searchInput?.value || '').toLowerCase().trim();
+      let totalCount = 0;
+      grid.innerHTML = '';
+
+      currentProject.shots.forEach(shot => {
+        if (selectedScene !== 'all' && shot.id !== selectedScene) return;
+
+        const takes = (shot.takes && shot.takes.length > 0) ? shot.takes : [
+          {
+            id: 'take_bekleniyor',
+            file: null,
+            file_type: null,
+            captured_at: null,
+            prompt: shot.prompt || '',
+            skills: shot.skills || [shot.skill || 'brainlab-cinematic-output'],
+            references: shot.references || [],
+            is_master: false
+          }
+        ];
+
+        let takesToRender = takes;
+        if (catalogOnlyMaster) {
+          const masterTake = takes.find(t => t.is_master);
+          const activeTake = takes.find(t => t.id === shot.active_take_id);
+          const singleTake = masterTake || activeTake || takes[0];
+          takesToRender = [singleTake];
+        }
+
+        takesToRender.forEach(take => {
+
+          const promptText = (take.prompt || shot.prompt || '').toLowerCase();
+          const skillsText = (take.skills || shot.skills || []).join(' ').toLowerCase();
+          const titleText = (shot.title || '').toLowerCase();
+
+          if (query && !promptText.includes(query) && !skillsText.includes(query) && !titleText.includes(query)) {
+            return;
+          }
+
+          totalCount++;
+          const isPlaceholder = !take.file;
+          const mediaUrl = take.file ? `/api/media?project=${currentProject.id}&shot=${shot.id}&file=${encodeURIComponent(take.file)}` : null;
+
+          const card = document.createElement('div');
+          card.onclick = () => openTakeInStudio(shot.id, take.id);
+          card.className = "bg-[var(--bg-panel)] rounded-2xl border border-[var(--border-subtle)] hover:border-[var(--accent-terracotta)] p-3 shadow-md hover:shadow-xl transition flex flex-col justify-between group cursor-pointer select-none";
+
+          // Medya Çerçevesi
+          let mediaHtml = '';
+          if (!isPlaceholder) {
+            if (take.file_type === 'video') {
+              mediaHtml = `
+                <div class="relative w-full aspect-video bg-black/40 rounded-xl overflow-hidden mb-2.5 border border-[var(--border-subtle)]">
+                  <video src="${mediaUrl}" class="w-full h-full object-cover" muted playsinline></video>
+                  <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <span class="w-8 h-8 rounded-full bg-[var(--accent-terracotta)] text-white flex items-center justify-center shadow-lg text-xs font-bold">▶</span>
+                  </div>
+                </div>
+              `;
+            } else {
+              mediaHtml = `
+                <div class="relative w-full aspect-video bg-black/30 rounded-xl overflow-hidden mb-2.5 border border-[var(--border-subtle)] group">
+                  <img src="${mediaUrl}" alt="${shot.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                </div>
+              `;
+            }
+          } else {
+            mediaHtml = `
+              <div class="w-full aspect-video border-2 border-dashed border-[var(--border-subtle)] rounded-xl flex flex-col items-center justify-center p-3 text-center bg-[var(--bg-surface)]/30 mb-2.5">
+                <span class="text-xs text-[var(--accent-terracotta)] font-bold">Higgsfield Bekleniyor</span>
+                <span class="text-[10px] text-[var(--text-muted)]">Henüz çıktı indirilmedi</span>
+              </div>
+            `;
+          }
+
+          // Sahnenin Take Thumbnail'leri (Varyasyon Çipleri)
+          const takesArray = shot.takes || [];
+          let takesThumbHtml = '';
+          if (takesArray.length > 0) {
+            takesThumbHtml = `
+              <div class="flex items-center space-x-1.5 mt-2">
+                <span class="text-[9px] text-[var(--text-muted)] font-semibold">Takes:</span>
+                <div class="flex items-center space-x-1 overflow-hidden">
+                  ${takesArray.map(t => {
+                    if (!t.file) return '';
+                    const isCurrent = (t.id === take.id);
+                    const tUrl = `/api/media?project=${currentProject.id}&shot=${shot.id}&file=${encodeURIComponent(t.file)}`;
+                    const thumbElement = t.file_type === 'video'
+                      ? `<div class="w-6 h-6 rounded-md bg-black/40 flex items-center justify-center text-[8px] text-white">▶</div>`
+                      : `<img src="${tUrl}" alt="${escapeHtml(t.id)}" class="w-full h-full object-cover">`;
+                    return `
+                      <div onclick="event.stopPropagation(); openTakeInStudio('${shot.id}', '${t.id}')" 
+                           class="w-6 h-6 rounded-md overflow-hidden border ${isCurrent ? 'border-[var(--accent-terracotta)] ring-2 ring-[var(--accent-terracotta)]/50' : 'border-[var(--border-subtle)] opacity-70 hover:opacity-100'} shadow-sm cursor-pointer transition hover:scale-110 shrink-0" 
+                           title="${escapeHtml(t.id.toUpperCase())}${t.is_master ? ' ★ (Master)' : ''}">
+                        ${thumbElement}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }
+
+          // Master Butonu
+          const masterBtnHtml = take.is_master
+            ? `<span class="px-2 py-0.5 rounded-md bg-amber-400 text-black text-[10px] font-mono font-bold shadow-sm">★ MASTER</span>`
+            : (take.id !== 'take_bekleniyor' ? `<button onclick="setMasterTake(event, '${shot.id}', '${take.id}')" title="Bu çıktıyı ana master yap" class="px-2 py-0.5 rounded-md bg-[var(--bg-surface)] hover:bg-amber-400 hover:text-black text-[var(--text-muted)] text-[10px] border border-[var(--border-subtle)] font-semibold transition cursor-pointer">☆ Master Yap</button>` : '');
+
+          card.innerHTML = `
+            <div>
+              <!-- Üst Başlık & Rozetler -->
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-mono font-bold bg-[var(--bg-surface)] text-[var(--text-main)] px-2 py-0.5 rounded-md border border-[var(--border-subtle)]">
+                  ${shot.id.toUpperCase()} • ${take.id.toUpperCase().replace('TAKE_', 'V')}
+                </span>
+                ${masterBtnHtml}
+              </div>
+
+              <!-- Medya Görseli -->
+              ${mediaHtml}
+
+              <!-- Sahne Başlığı -->
+              <h3 class="text-xs font-bold text-[var(--text-main)] truncate mt-1 mb-1" title="${escapeHtml(shot.title)}">${escapeHtml(shot.title)}</h3>
+
+              ${takesThumbHtml}
+            </div>
+
+            <!-- Kart Altı Butonları -->
+            <div class="pt-2 mt-2 border-t border-[var(--border-subtle)] flex items-center justify-end">
+              <button onclick="handleCatalogDelete(event, '${shot.id}', '${take.id}')" title="${take.id === 'take_bekleniyor' ? 'Sahneyi sil' : 'Bu çıktıyı sil (Çöp Sepetine Taşı)'}" class="px-2 py-0.5 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 border border-rose-500/25 hover:border-rose-500/40 rounded-lg text-[10px] font-bold transition flex items-center space-x-1 cursor-pointer">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <span>${take.id === 'take_bekleniyor' ? 'Sahneyi Sil' : 'Sil'}</span>
+              </button>
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+      });
+
+      if (statsEl) {
+        statsEl.innerText = `${totalCount} Üretim Kartuşu • ${currentProject.shots.length} Sahne`;
+      }
+    }
+
+    async function openTakeInStudio(shotId, takeId) {
+      activeShotId = shotId;
+      const shot = currentProject?.shots?.find(s => s.id === shotId);
+      if (shot && takeId && takeId !== 'take_bekleniyor') {
+        shot.active_take_id = takeId;
+        try {
+          fetch('/api/project/set_active_take', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId, take_id: takeId, is_master: false })
+          });
+        } catch (e) {}
+      }
+      switchViewMode('studio');
+      updateActiveShotTarget(shotId);
+    }
+
+    function copySpecificPrompt(e, text) {
+      if (e) e.stopPropagation();
+      navigator.clipboard.writeText(text);
+      showToast("✓ Orijinal Prompt Kopyalandı!");
+    }
+
+    function renderTakesFilmstrip(shot, activeTake) {
+      const container = document.getElementById('takesFilmstripContainer');
+      const countBadge = document.getElementById('takesCountBadge');
+      const paginationEl = document.getElementById('takesPaginationText');
+      if (!container || !shot) return;
+
+      const takes = shot.takes || [];
+      if (countBadge) countBadge.innerText = `${takes.length} Varyasyon`;
+      container.innerHTML = '';
+
+      if (paginationEl) {
+        const shotIndex = currentProject?.shots?.findIndex(s => s.id === shot.id) ?? 0;
+        const totalShots = currentProject?.shots?.length || 1;
+        const activeTakeIndex = takes.findIndex(t => t.id === (activeTake ? activeTake.id : null));
+        const takePart = takes.length > 0 ? ` • Take ${activeTakeIndex >= 0 ? activeTakeIndex + 1 : 1} / ${takes.length}` : '';
+        paginationEl.innerText = `Sahne ${shotIndex + 1} / ${totalShots}${takePart}`;
+      }
+
+      if (takes.length === 0) {
+        container.innerHTML = `<div class="w-full py-4 text-center text-xs text-[var(--text-muted)] italic bg-[var(--bg-surface)]/30 rounded-xl border border-dashed border-[var(--border-subtle)]">Henüz bu sahne için varyasyon üretilmedi.<br><span class="text-[10px] text-[var(--text-faint)]">Higgsfield'dan indirdiğiniz her dosya burada ayrı bir varyasyon kartuşu olarak arşivlenir.</span></div>`;
+        return;
+      }
+
+      takes.forEach(t => {
+        const isSelected = activeTake && (activeTake.id === t.id);
+        const mediaUrl = `/api/media?project=${currentProject.id}&shot=${shot.id}&file=${encodeURIComponent(t.file)}`;
+
+        const div = document.createElement('div');
+        div.onclick = () => selectTake(shot.id, t.id);
+
+        const borderClass = isSelected
+          ? "border-2 border-[var(--accent-primary)] shadow-lg bg-[var(--bg-contrast)] scale-[1.02]"
+          : "border border-[var(--border-subtle)] hover:border-[var(--text-muted)] bg-[var(--bg-surface)]/80 opacity-90 hover:opacity-100";
+        div.className = `w-28 shrink-0 p-1.5 rounded-xl cursor-pointer transition flex flex-col justify-between shadow-sm ${borderClass}`;
+
+        const mediaThumb = t.file_type === 'video'
+          ? `<div class="w-full h-14 bg-black/40 rounded-lg overflow-hidden flex items-center justify-center relative"><span class="text-white text-[10px]">▶ Video</span></div>`
+          : `<img src="${mediaUrl}" class="w-full h-14 rounded-lg object-cover">`;
+
+        div.innerHTML = `
+          ${mediaThumb}
+          <div class="mt-1 flex items-center justify-between text-[10px] font-mono font-bold">
+            <span class="truncate">${escapeHtml(t.id.toUpperCase())}</span>
+          </div>
+          <div class="flex items-center justify-end mt-1 pt-1 border-t border-[var(--border-subtle)] text-[9px] text-[var(--text-muted)]">
+            <div class="flex items-center space-x-2">
+              ${t.is_master 
+                ? `<span class="text-amber-400 font-bold text-xs leading-none" title="Master Take (Ana Seçim)">★</span>` 
+                : `<button onclick="setMasterTake(event, '${shot.id}', '${t.id}')" title="Bu çıktıyı Master Take yap" class="text-[var(--text-faint)] hover:text-amber-400 transition text-xs font-bold leading-none cursor-pointer">☆</button>`
+              }
+              <button onclick="deleteTake(event, '${shot.id}', '${t.id}')" title="Bu Take'i Sil" class="text-rose-500 hover:text-rose-400 hover:font-bold leading-none cursor-pointer">✕</button>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(div);
+      });
+    }
+
+    async function selectTake(shotId, takeId) {
+      const shot = currentProject?.shots?.find(s => s.id === shotId);
+      if (shot) {
+        shot.active_take_id = takeId;
+        const activeTake = shot.takes?.find(t => t.id === takeId);
+        if (activeTake) {
+          if (activeTake.prompt) shot.prompt = activeTake.prompt;
+          if (activeTake.skills) shot.skills = [...activeTake.skills];
+          if (activeTake.references !== undefined) shot.references = [...activeTake.references];
+          if (activeTake.styles !== undefined) shot.styles = [...activeTake.styles];
+          if (activeTake.file) shot.file = activeTake.file;
+          if (activeTake.file_type) shot.file_type = activeTake.file_type;
+        }
+        renderPreview();
+        renderInspector();
+      }
+      try {
+        const res = await fetch('/api/project/set_active_take', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId, take_id: takeId, is_master: false })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+        }
+      } catch (e) {}
+    }
+
+    async function updateTakeModel(newModel) {
+      if (!currentProject || !currentProject.shots) return;
+      const shot = currentProject.shots.find(s => s.id === currentShotId);
+      if (!shot) return;
+      const activeTakeId = shot.active_take_id || (shot.takes && shot.takes[0]?.id);
+
+      try {
+        const res = await fetch('/api/take/update_model', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: currentProject.id,
+            shot_id: currentShotId,
+            take_id: activeTakeId,
+            model: newModel
+          })
+        });
+        const d = await res.json();
+        if (d.success && d.project) {
+          currentProject = d.project;
+          showToast(`Model: ${newModel} olarak kaydedildi`);
+          const updatedShot = currentProject.shots.find(s => s.id === currentShotId);
+          renderInspector(updatedShot);
+        }
+      } catch (err) {
+        console.error('Model güncellenemedi:', err);
+      }
+    }
+
+    async function updateTakeCredits(newCredits) {
+      if (!currentProject || !currentProject.shots) return;
+      const shot = currentProject.shots.find(s => s.id === currentShotId);
+      if (!shot) return;
+      const activeTakeId = shot.active_take_id || (shot.takes && shot.takes[0]?.id);
+
+      const val = parseInt(newCredits, 10) || 0;
+      try {
+        const res = await fetch('/api/take/update_credits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: currentProject.id,
+            shot_id: currentShotId,
+            take_id: activeTakeId,
+            credits: val
+          })
+        });
+        const d = await res.json();
+        if (d.success && d.project) {
+          currentProject = d.project;
+          showToast(`⚡ Kredi: ${val} olarak kaydedildi`);
+          const updatedShot = currentProject.shots.find(s => s.id === currentShotId);
+          renderInspector(updatedShot);
+        }
+      } catch (err) {
+        console.error('Kredi güncellenemedi:', err);
+      }
+    }
+
+    async function setMasterTake(e, shotId, takeId) {
+      if (e) e.stopPropagation();
+      try {
+        const res = await fetch('/api/project/set_active_take', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId, take_id: takeId, is_master: true })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          showToast(`★ ${takeId.toUpperCase()} Master Take olarak seçildi!`);
+          if (currentViewMode === 'catalog') {
+            renderCatalog();
+          } else {
+            renderPreview();
+            renderTimeline();
+            renderInspector();
+          }
+        }
+      } catch (ex) {
+        alert('Master Take ayarlanamadı: ' + ex);
+      }
+    }
+
+    async function deleteTake(e, shotId, takeId) {
+      if (e) e.stopPropagation();
+      if (!confirm(`${takeId.toUpperCase()} varyasyonunu silmek ve çöp sepetine taşımak istediğinize emin misiniz?`)) return;
+      try {
+        const res = await fetch('/api/project/delete_take', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId, take_id: takeId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          showToast(`🗑️ ${takeId.toUpperCase()} silindi.`);
+          if (currentViewMode === 'catalog') {
+            renderCatalog();
+          } else {
+            renderPreview();
+            renderTimeline();
+            renderInspector();
+          }
+        }
+      } catch (ex) {
+        alert('Take silinemedi: ' + ex);
+      }
+    }
+
+    async function confirmDeleteShotFromCatalog(e, shotId) {
+      if (e) e.stopPropagation();
+      if (!currentProject || !currentProject.shots) return;
+      if (currentProject.shots.length <= 1) {
+        alert("Projede en az 1 sahne bulunmalıdır.");
+        return;
+      }
+      const shot = currentProject.shots.find(s => s.id === shotId);
+      const title = shot ? shot.title : shotId.toUpperCase();
+      const ok = confirm(`"${title}" sahnesini ve bu sahneye ait tüm dosyaları projeden silip Çöp Sepetine göndermek istediğinize emin misiniz?`);
+      if (!ok) return;
+
+      try {
+        const res = await fetch('/api/project/delete_shot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          if (activeShotId === shotId) {
+            activeShotId = data.new_active_shot || (currentProject.shots[0] ? currentProject.shots[0].id : null);
+          }
+          showToast(`🗑️ ${shotId.toUpperCase()} sahnesi silindi.`);
+          renderCatalog();
+          renderTimeline();
+          renderPreview();
+          renderInspector();
+        }
+      } catch (err) {
+        alert("Sahne silinemedi: " + err);
+      }
+    }
+
+    async function handleCatalogDelete(e, shotId, takeId) {
+      if (e) e.stopPropagation();
+
+      const shot = currentProject?.shots?.find(s => s.id === shotId);
+      if (!shot) return;
+
+      // 1. Boş Sahne (Henüz çıktısı yok)
+      if (takeId === 'take_bekleniyor') {
+        await confirmDeleteShotFromCatalog(e, shotId);
+        return;
+      }
+
+      // 2. Çıktısı olan kartuş
+      const hasMultipleTakes = (shot.takes && shot.takes.length > 1);
+      let confirmMsg = '';
+
+      if (hasMultipleTakes) {
+        confirmMsg = `${shotId.toUpperCase()} • ${takeId.toUpperCase()} varyasyonunu silmek ve görseli Çöp Sepetine taşımak istiyor musunuz?`;
+      } else {
+        confirmMsg = `"${shot.title}" için üretilen bu görseli silmek ve Çöp Sepetine taşımak istiyor musunuz?\n\n(Reçete korunur, sahne tekrar 'Bekleniyor' durumuna geçer)`;
+      }
+
+      const ok = confirm(confirmMsg);
+      if (!ok) return;
+
+      try {
+        const res = await fetch('/api/project/delete_take', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProject.id, shot_id: shotId, take_id: takeId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentProject = data.project;
+          showToast(`🗑️ ${takeId.toUpperCase()} silindi ve Çöp Sepetine taşındı.`);
+          renderCatalog();
+          renderTimeline();
+          renderPreview();
+          renderInspector();
+        }
+      } catch (err) {
+        alert("Silinemedi: " + err);
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
